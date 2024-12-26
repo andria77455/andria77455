@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" class="calculator-screen" value="" disabled />
+        <div class="calculator-keys">
+            <button type="button" class="operator" value="+">+</button>
+            <button type="button" class="operator" value="-">-</button>
+            <button type="button" class="operator" value="*">&times;</button>
+            <button type="button" class="operator" value="/">&divide;</button>
+
+            <button type="button" value="7">7</button>
+            <button type="button" value="8">8</button>
+            <button type="button" value="9">9</button>
+
+            <button type="button" value="4">4</button>
+            <button type="button" value="5">5</button>
+            <button type="button" value="6">6</button>
+
+            <button type="button" value="1">1</button>
+            <button type="button" value="2">2</button>
+            <button type="button" value="3">3</button>
+
+            <button type="button" value="0">0</button>
+            <button type="button" class="decimal" value=".">.</button>
+            <button type="button" class="all-clear" value="all-clear">AC</button>
+
+            <button type="button" class="equal-sign" value="=">=</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+Public code references from 27 repositories
+CSS (styles.css)
+CSS
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.calculator {
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.calculator-screen {
+    width: 100%;
+    height: 80px;
+    border: none;
+    background-color: #252525;
+    color: #fff;
+    text-align: right;
+    padding: 10px 20px;
+    font-size: 2.4rem;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.calculator-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+button {
+    height: 80px;
+    border: 1px solid #ddd;
+    background-color: white;
+    font-size: 1.6rem;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+}
+
+button:hover {
+    background-color: #f4f4f4;
+}
+
+.operator {
+    background-color: #f9a825;
+    color: white;
+}
+
+.equal-sign {
+    background-color: #3f51b5;
+    color: white;
+    grid-column: span 2;
+}
+
+.all-clear {
+    background-color: #d32f2f;
+    color: white;
+}
+
+.decimal {
+    background-color: #ffab00;
+}
+Public code references from 27 repositories
+JavaScript (script.js)
+JavaScript
+const calculator = {
+    displayValue: '0',
+    firstOperand: null,
+    waitingForSecondOperand: false,
+    operator: null,
+};
+
+function inputDigit(digit) {
+    const { displayValue, waitingForSecondOperand } = calculator;
+
+    if (waitingForSecondOperand === true) {
+        calculator.displayValue = digit;
+        calculator.waitingForSecondOperand = false;
+    } else {
+        calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+    }
+}
+
+function inputDecimal(dot) {
+    if (calculator.waitingForSecondOperand === true) return;
+
+    if (!calculator.displayValue.includes(dot)) {
+        calculator.displayValue += dot;
+    }
+}
+
+function handleOperator(nextOperator) {
+    const { firstOperand, displayValue, operator } = calculator;
+    const inputValue = parseFloat(displayValue);
+
+    if (operator && calculator.waitingForSecondOperand)  {
+        calculator.operator = nextOperator;
+        return;
+    }
+
+    if (firstOperand == null && !isNaN(inputValue)) {
+        calculator.firstOperand = inputValue;
+    } else if (operator) {
+        const result = calculate(firstOperand, inputValue, operator);
+
+        calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+        calculator.firstOperand = result;
+    }
+
+    calculator.waitingForSecondOperand = true;
+    calculator.operator = nextOperator;
+}
+
+function calculate(firstOperand, secondOperand, operator) {
+    if (operator === '+') {
+        return firstOperand + secondOperand;
+    } else if (operator === '-') {
+        return firstOperand - secondOperand;
+    } else if (operator === '*') {
+        return firstOperand * secondOperand;
+    } else if (operator === '/') {
+        return firstOperand / secondOperand;
+    }
+
+    return secondOperand;
+}
+
+function resetCalculator() {
+    calculator.displayValue = '0';
+    calculator.firstOperand = null;
+    calculator.waitingForSecondOperand = false;
+    calculator.operator = null;
+}
+
+function updateDisplay() {
+    const display = document.querySelector('.calculator-screen');
+    display.value = calculator.displayValue;
+}
+
+updateDisplay();
+
+const keys = document.querySelector('.calculator-keys');
+keys.addEventListener('click', event => {
+    const { target } = event;
+    if (!target.matches('button')) {
+        return;
+    }
+
+    if (target.classList.contains('operator')) {
+        handleOperator(target.value);
+        updateDisplay();
+        return;
+    }
+
+    if (target.classList.contains('decimal')) {
+        inputDecimal(target.value);
+        updateDisplay();
+        return;
+    }
+
+    if (target.classList.contains('all-clear')) {
+        resetCalculator();
+        updateDisplay();
+        return;
+    }
+
+    inputDigit(target.value);
+    updateDisplay();
+});
